@@ -9,818 +9,167 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: none;
-            user-select: none;
         }
+
         body {
             overflow: hidden;
-            font-family: Arial, sans-serif;
-            background-color: #000;
+            touch-action: none;
+            background: #000;
         }
-        #gameContainer {
-            position: relative;
+
+        canvas {
             width: 100vw;
             height: 100vh;
-            touch-action: none;
-        }
-        #gameCanvas {
-            width: 100%;
-            height: 100%;
             display: block;
-            touch-action: none;
         }
-        #ui {
-            position: absolute;
+
+        #ui-overlay {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
+            z-index: 1;
         }
-        #healthBar {
+
+        #health-bar {
             position: absolute;
             top: 20px;
             left: 20px;
             width: 200px;
             height: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.5);
             border: 2px solid #fff;
-            border-radius: 10px;
         }
-        #healthFill {
-            height: 100%;
-            background-color: #ff0000;
-            border-radius: 8px;
+
+        #health-fill {
             width: 100%;
-            transition: width.3s ease;
+            height: 100%;
+            background: #ff0000;
+            transition: width 0.2s;
         }
-        #ammoDisplay {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        #scoreDisplay {
+
+        #ammo-count {
             position: absolute;
             top: 20px;
             right: 20px;
             color: #fff;
+            font-family: Arial, sans-serif;
             font-size: 24px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
         }
-        #waveDisplay {
+
+        #score-timer {
             position: absolute;
-            top: 50px;
-            right: 20px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             color: #fff;
+            font-family: Arial, sans-serif;
             font-size: 24px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
         }
-        #shootButton {
+
+        #virtual-joystick {
             position: absolute;
-            bottom: 40px;
-            right: 40px;
-            width: 80px;
-            height: 80px;
-            background-color: rgba(255, 0, 0, 0.5);
-            border: 2px solid #fff;
+            bottom: 50px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             pointer-events: auto;
         }
-        #joystickContainer {
+
+        #joystick-knob {
             position: absolute;
-            bottom: 40px;
-            left: 40px;
-            width: 120px;
-            height: 120px;
-            background-color: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 50%;
-            pointer-events: auto;
-        }
-        #joystick {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            top: 30px;
-            left: 30px;
-        }
-        #crosshair {
-            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            pointer-events: none;
         }
-        #crosshair::before, #crosshair::after {
-            content: '';
+
+        #shoot-button {
             position: absolute;
-            background-color: rgba(255, 255, 255, 0.8);
+            bottom: 50px;
+            right: 50px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            pointer-events: auto;
+            color: #fff;
+            font-size: 16px;
         }
-        #crosshair::before {
-            width: 20px;
-            height: 2px;
-            top: 9px;
-            left: 0;
-        }
-        #crosshair::after {
-            width: 2px;
-            height: 20px;
-            top: 0;
-            left: 9px;
-        }
-        #menuContainer {
-            position: absolute;
+
+        #title-screen,
+        #game-over-screen {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-        }
-        .menuButton {
-            background-color: #ff3300;
             color: #fff;
-            font-size: 24px;
-            padding: 15px 30px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            font-family: Arial, sans-serif;
             pointer-events: auto;
         }
-        .menuButton:hover {
-            background-color: #ff6600;
-        }
-        #gameTitle {
-            color: #fff;
+
+        .screen-title {
             font-size: 48px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin-bottom: 20px;
-        }
-        #gameOverText {
-            color: #ff0000;
-            font-size: 48px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin-bottom: 20px;
-        }
-        #finalScore {
-            color: #fff;
-            font-size: 36px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
-        #highScoresList {
-            color: #fff;
+
+        .screen-button {
+            padding: 15px 30px;
             font-size: 24px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-            list-style-type: none;
-            text-align: center;
-        }
-        #damageIndicator {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            border: 0px solid rgba(255, 0, 0, 0.5);
-            box-sizing: border-box;
-            transition: border-width 0.2s ease;
-        }
-        #waveAnnouncement {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff6600;
-            font-size: 48px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            background: #ff0000;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            margin: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
-        <div id="ui">
-            <div id="healthBar"><div id="healthFill"></div></div>
-            <div id="ammoDisplay">Ammo: 30/30</div>
-            <div id="scoreDisplay">Score: 0</div>
-            <div id="waveDisplay">Wave: 1</div>
-            <div id="joystickContainer">
-                <div id="joystick"></div>
-            </div>
-            <div id="shootButton"></div>
-            <div id="crosshair"></div>
-            <div id="damageIndicator"></div>
-            <div id="waveAnnouncement"></div>
-        </div>
-        <div id="menuContainer">
-            <h1 id="gameTitle">ARENA BLASTER 3D</h1>
-            <button id="startButton" class="menuButton">START GAME</button>
-            <button id="highScoresButton" class="menuButton">HIGH SCORES</button>
-        </div>
+    <div id="title-screen">
+        <h1 class="screen-title">Arena Blaster 3D</h1>
+        <button class="screen-button" id="start-button">Start Game</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Game states
-        const GameState = {
-            MENU: 0,
-            PLAYING: 1,
-            GAME_OVER: 2,
-            HIGH_SCORES: 3
-        };
+    <div id="game-over-screen" style="display: none;">
+        <h1 class="screen-title">Game Over</h1>
+        <div id="final-score" style="font-size: 32px; margin-bottom: 20px;">Score: 0</div>
+        <div id="high-score" style="font-size: 24px; margin-bottom: 20px;">High Score: 0</div>
+        <button class="screen-button" id="restart-button">Play Again</button>
+        <button class="screen-button" id="share-button">Share Score</button>
+    </div>
 
-        // Game variables
-        let gameState = GameState.MENU;
-        let score = 0;
-        let wave = 1;
-        let health = 100;
-        let maxHealth = 100;
-        let ammo = 30;
-        let maxAmmo = 30;
-        let lastTime = 0;
-        let enemiesKilled = 0;
-        let gameTime = 0;
-        let isReloading = false;
-        let reloadTimer = 0;
-        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
-        let enemies = [];
-        let bullets = [];
-        let enemyBullets = [];
-        let ammoPickups = [];
-        let healthPickups = [];
-        let obstaclesData = [];
-        let spawnPoints = [];
-        let nextSpawnTime = 0;
-        let nextEnemyFireTime = 0;
-        let waveStartTime = 0;
-        let waveAnnouncementTimer = 0;
-        let isShowingWaveAnnouncement = false;
+    <div id="ui-overlay">
+        <div id="health-bar">
+            <div id="health-fill"></div>
+        </div>
+        <div id="ammo-count">Ammo: 50</div>
+        <div id="score-timer">Score: 0 | Time: 0s</div>
+        <div id="virtual-joystick">
+            <div id="joystick-knob"></div>
+        </div>
+        <button id="shoot-button">SHOOT</button>
+    </div>
 
-        // Three.js variables
-        let scene, camera, renderer;
-        let playerDirection = new THREE.Vector3();
-        let playerVelocity = new THREE.Vector3();
-        let moveForward = false;
-        let moveBackward = false;
-        let moveLeft = false;
-        let moveRight = false;
-        let velocity = 0.07;
-        let shootCooldown = 0;
-        let playerCollider;
-
-        // Control variables
-        let joystickActive = false;
-        let joystickTouchId = null;
-        let joystickCenter = { x: 0, y: 0 };
-        let joystickPos = { x: 0, y: 0 };
-        let lookTouchId = null;
-        let previousTouchPosition = { x: 0, y: 0 };
-        let isShooting = false;
-
-        // DOM elements
-        const gameCanvas = document.getElementById('gameCanvas');
-        const menuContainer = document.getElementById('menuContainer');
-        const startButton = document.getElementById('startButton');
-        const highScoresButton = document.getElementById('highScoresButton');
-        const joystickContainer = document.getElementById('joystickContainer');
-        const joystick = document.getElementById('joystick');
-        const shootButton = document.getElementById('shootButton');
-        const healthFill = document.getElementById('healthFill');
-        const ammoDisplay = document.getElementById('ammoDisplay');
-        const scoreDisplay = document.getElementById('scoreDisplay');
-        const waveDisplay = document.getElementById('waveDisplay');
-        const damageIndicator = document.getElementById('damageIndicator');
-        const waveAnnouncement = document.getElementById('waveAnnouncement');
-
-        // Initialize Three.js
-        function initThree() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB);
-            scene.fog = new THREE.FogExp2(0x87CEEB, 0.01);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 1.8, 0);
-
-            renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-
-            // Add lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-            scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(50, 50, 50);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 1024;
-            directionalLight.shadow.mapSize.height = 1024;
-            scene.add(directionalLight);
-
-            // Create player
-            playerCollider = new THREE.Object3D();
-            playerCollider.position.set(0, 1.8, 0);
-            scene.add(playerCollider);
-            
-            // Create arena
-            createArena();
-            
-            // Add event listeners
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('orientationchange', onWindowResize);
-            
-            // Setup controls
-            setupControls();
-            
-            // Start animation loop
-            animate();
-        }
-
-        function createArena() {
-            // Create floor
-            const floorGeometry = new THREE.PlaneGeometry(100, 100);
-            const floorMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x555555, 
-                roughness: 0.8,
-                metalness: 0.2
-            });
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
-            
-            // Create walls
-            const wallMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x888888,
-                roughness: 0.6,
-                metalness: 0.1
-            });
-            
-            // Outer walls
-            const wallGeometry = new THREE.BoxGeometry(100, 5, 1);
-            
-            const northWall = new THREE.Mesh(wallGeometry, wallMaterial);
-            northWall.position.set(0, 2.5, -50);
-            northWall.receiveShadow = true;
-            northWall.castShadow = true;
-            scene.add(northWall);
-            
-            const southWall = new THREE.Mesh(wallGeometry, wallMaterial);
-            southWall.position.set(0, 2.5, 50);
-            southWall.receiveShadow = true;
-            southWall.castShadow = true;
-            scene.add(southWall);
-            
-            const eastWall = new THREE.Mesh(wallGeometry, wallMaterial);
-            eastWall.position.set(50, 2.5, 0);
-            eastWall.rotation.y = Math.PI / 2;
-            eastWall.receiveShadow = true;
-            eastWall.castShadow = true;
-            scene.add(eastWall);
-            
-            const westWall = new THREE.Mesh(wallGeometry, wallMaterial);
-            westWall.position.set(-50, 2.5, 0);
-            westWall.rotation.y = Math.PI / 2;
-            westWall.receiveShadow = true;
-            westWall.castShadow = true;
-            scene.add(westWall);
-            
-            // Add obstacles
-            const obstacleGeometry = new THREE.BoxGeometry(4, 3, 4);
-            const obstacleMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x8B4513,
-                roughness: 0.8,
-                metalness: 0.2
-            });
-            
-            // Create obstacles in pattern
-            for (let i = -35; i <= 35; i += 10) {
-                for (let j = -35; j <= 35; j += 10) {
-                    // Skip center area
-                    if (Math.abs(i) < 15 && Math.abs(j) < 15) continue;
-                    
-                    // Randomly skip some obstacles
-                    if (Math.random() < 0.7) {
-                        const obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
-                        obstacle.position.set(i + (Math.random() - 0.5) * 5, 1.5, j + (Math.random() - 0.5) * 5);
-                        obstacle.castShadow = true;
-                        obstacle.receiveShadow = true;
-                        scene.add(obstacle);
-                        
-                        obstaclesData.push({
-                            mesh: obstacle,
-                            collider: new THREE.Box3().setFromObject(obstacle)
-                        });
-                    }
-                    
-                    // Add spawn points
-                    if (Math.abs(i) > 20 || Math.abs(j) > 20) {
-                        spawnPoints.push(new THREE.Vector3(i, 1.8, j));
-                    }
-                }
-            }
-        }
-
-        function setupControls() {
-            // Joystick touch controls
-            joystickContainer.addEventListener('touchstart', onJoystickStart);
-            joystickContainer.addEventListener('touchmove', onJoystickMove);
-            joystickContainer.addEventListener('touchend', onJoystickEnd);
-            
-            // Look touch controls
-            gameCanvas.addEventListener('touchstart', onTouchStart);
-            gameCanvas.addEventListener('touchmove', onTouchMove);
-            gameCanvas.addEventListener('touchend', onTouchEnd);
-            
-            // Shoot button
-            shootButton.addEventListener('touchstart', onShootStart);
-            shootButton.addEventListener('touchend', onShootEnd);
-            
-            // Menu buttons
-            startButton.addEventListener('click', startGame);
-            highScoresButton.addEventListener('click', showHighScores);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function onJoystickStart(event) {
-            if (gameState !== GameState.PLAYING) return;
-            
-            joystickActive = true;
-            joystickTouchId = event.changedTouches[0].identifier;
-            
-            const rect = joystickContainer.getBoundingClientRect();
-            joystickCenter = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
-            };
-            
-            joystickPos = {
-                x: event.changedTouches[0].clientX,
-                y: event.changedTouches[0].clientY
-            };
-            
-            updateJoystickPosition();
-        }
-
-        function onJoystickMove(event) {
-            if (!joystickActive) return;
-            
-            for (let i = 0; i < event.changedTouches.length; i++) {
-                if (event.changedTouches[i].identifier === joystickTouchId) {
-                    joystickPos = {
-                        x: event.changedTouches[i].clientX,
-                        y: event.changedTouches[i].clientY
-                    };
-                    updateJoystickPosition();
-                    break;
-                }
-            }
-        }
-
-        function onJoystickEnd(event) {
-            for (let i = 0; i < event.changedTouches.length; i++) {
-                if (event.changedTouches[i].identifier === joystickTouchId) {
-                    joystickActive = false;
-                    resetJoystick();
-                    resetMovement();
-                    break;
-                }
-            }
-        }
-
-        function updateJoystickPosition() {
-            const deltaX = joystickPos.x - joystickCenter.x;
-            const deltaY = joystickPos.y - joystickCenter.y;
-            
-            const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), 40);
-            const angle = Math.atan2(deltaY, deltaX);
-            
-            const x = joystickCenter.x - joystickContainer.getBoundingClientRect().left + distance * Math.cos(angle) - joystick.clientWidth / 2;
-            const y = joystickCenter.y - joystickContainer.getBoundingClientRect().top + distance * Math.sin(angle) - joystick.clientHeight / 2;
-            
-            joystick.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            
-            // Update movement flags
-            const normX = deltaX / 40;
-            const normY = deltaY / 40;
-            
-            moveForward = normY < -0.2;
-            moveBackward = normY > 0.2;
-            moveLeft = normX < -0.2;
-            moveRight = normX > 0.2;
-            
-            // Adjust velocity based on distance
-            playerVelocity.z = -normY * velocity;
-            playerVelocity.x = normX * velocity;
-        }
-
-        function resetJoystick() {
-            joystick.style.transform = `translate3d(30px, 30px, 0)`;
-        }
-
-        function resetMovement() {
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
-            playerVelocity.set(0, 0, 0);
-        }
-
-        function onTouchStart(event) {
-            if (gameState !== GameState.PLAYING) return;
-            
-            for (let i = 0; i < event.touches.length; i++) {
-                const touch = event.touches[i];
-                
-                // Skip if this touch is for joystick
-                if (joystickActive && touch.identifier === joystickTouchId) continue;
-                
-                // Skip if this touch is on the shoot button
-                const rect = shootButton.getBoundingClientRect();
-                if (touch.clientX >= rect.left && touch.clientX <= rect.right && 
-                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) continue;
-                
-                // Skip if this touch is on the left side of the screen
-                if (touch.clientX < window.innerWidth / 2) continue;
-                
-                // This touch is for looking
-                lookTouchId = touch.identifier;
-                previousTouchPosition = {
-                    x: touch.clientX,
-                    y: touch.clientY
-                };
-                break;
-            }
-        }
-
-        function onTouchMove(event) {
-            if (gameState !== GameState.PLAYING || lookTouchId === null) return;
-            
-            for (let i = 0; i < event.changedTouches.length; i++) {
-                const touch = event.changedTouches[i];
-                
-                if (touch.identifier === lookTouchId) {
-                    const deltaX = touch.clientX - previousTouchPosition.x;
-                    const deltaY = touch.clientY - previousTouchPosition.y;
-                    
-                    // Rotate camera horizontally
-                    playerCollider.rotation.y -= deltaX * 0.01;
-                    
-                    // Rotate camera vertically with limits
-                    camera.rotation.x += deltaY * 0.01;
-                    camera.rotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, camera.rotation.x));
-                    
-                    previousTouchPosition = {
-                        x: touch.clientX,
-                        y: touch.clientY
-                    };
-                    break;
-                }
-            }
-        }
-
-        function onTouchEnd(event) {
-            if (lookTouchId === null) return;
-            
-            for (let i = 0; i < event.changedTouches.length; i++) {
-                if (event.changedTouches[i].identifier === lookTouchId) {
-                    lookTouchId = null;
-                    break;
-                }
-            }
-        }
-
-        function onShootStart() {
-            if (gameState !== GameState.PLAYING) return;
-            isShooting = true;
-        }
-
-        function onShootEnd() {
-            isShooting = false;
-        }
-
-        function startGame() {
-            // Hide menu
-            menuContainer.style.display = 'none';
-            
-            // Reset game state
-            score = 0;
-            wave = 1;
-            health = maxHealth;
-            ammo = maxAmmo;
-            gameTime = 0;
-            enemiesKilled = 0;
-            waveStartTime = 0;
-            isReloading = false;
-            reloadTimer = 0;
-            
-            // Reset player position
-            playerCollider.position.set(0, 1.8, 0);
-            playerCollider.rotation.y = 0;
-            camera.rotation.x = 0;
-            
-            // Clear entities
-            clearEntities();
-            
-            // Update UI
-            updateUI();
-            
-            // Set game state to playing
-            gameState = GameState.PLAYING;
-            
-            // Show wave announcement
-            showWaveAnnouncement();
-        }
-
-        function showHighScores() {
-            // Clear menu
-            menuContainer.innerHTML = '';
-            
-            // Create high scores elements
-            const title = document.createElement('h1');
-            title.textContent = 'HIGH SCORES';
-            title.id = 'gameTitle';
-            menuContainer.appendChild(title);
-            
-            const scoresList = document.createElement('ol');
-            scoresList.id = 'highScoresList';
-            
-            const scores = highScores.sort((a, b) => b.score - a.score).slice(0, 10);
-            
-            if (scores.length === 0) {
-                const noScores = document.createElement('li');
-                noScores.textContent = 'No scores yet!';
-                scoresList.appendChild(noScores);
-            } else {
-                scores.forEach(score => {
-                    const scoreItem = document.createElement('li');
-                    scoreItem.textContent = `${score.score} points - Wave ${score.wave}`;
-                    scoresList.appendChild(scoreItem);
-                });
-            }
-            
-            menuContainer.appendChild(scoresList);
-            
-            // Back button
-            const backButton = document.createElement('button');
-            backButton.textContent = 'BACK';
-            backButton.className = 'menuButton';
-            backButton.addEventListener('click', showMainMenu);
-            menuContainer.appendChild(backButton);
-            
-            // Set game state
-            gameState = GameState.HIGH_SCORES;
-        }
-
-        function showMainMenu() {
-            // Clear menu
-            menuContainer.innerHTML = '';
-            
-            // Create main menu elements
-            const title = document.createElement('h1');
-            title.textContent = 'ARENA BLASTER 3D';
-            title.id = 'gameTitle';
-            menuContainer.appendChild(title);
-            
-            const startButton = document.createElement('button');
-            startButton.textContent = 'START GAME';
-            startButton.className = 'menuButton';
-            startButton.id = 'startButton';
-            startButton.addEventListener('click', startGame);
-            menuContainer.appendChild(startButton);
-            
-            const highScoresButton = document.createElement('button');
-            highScoresButton.textContent = 'HIGH SCORES';
-            highScoresButton.className = 'menuButton';
-            highScoresButton.id = 'highScoresButton';
-            highScoresButton.addEventListener('click', showHighScores);
-            menuContainer.appendChild(highScoresButton);
-            
-            // Show menu
-            menuContainer.style.display = 'flex';
-            
-            // Set game state
-            gameState = GameState.MENU;
-        }
-
-        function gameOver() {
-            // Clear menu
-            menuContainer.innerHTML = '';
-            
-            // Create game over elements
-            const gameOverTitle = document.createElement('h1');
-            gameOverTitle.textContent = 'GAME OVER';
-            gameOverTitle.id = 'gameOverText';
-            menuContainer.appendChild(gameOverTitle);
-            
-            const finalScoreText = document.createElement('p');
-            finalScoreText.textContent = `Final Score: ${score} | Wave: ${wave}`;
-            finalScoreText.id = 'finalScore';
-            menuContainer.appendChild(finalScoreText);
-            
-            // Save high score
-            highScores.push({
-                score: score,
-                wave: wave,
-                timestamp: Date.now()
-            });
-            
-            // Keep only top 10 scores
-            highScores.sort((a, b) => b.score - a.score);
-            highScores = highScores.slice(0, 10);
-            
-            // Save to local storage
-            localStorage.setItem('highScores', JSON.stringify(highScores));
-            
-            // Add buttons
-            const restartButton = document.createElement('button');
-            restartButton.textContent = 'PLAY AGAIN';
-            restartButton.className = 'menuButton';
-            restartButton.addEventListener('click', startGame);
-            menuContainer.appendChild(restartButton);
-            
-            const menuButton = document.createElement('button');
-            menuButton.textContent = 'MAIN MENU';
-            menuButton.className = 'menuButton';
-            menuButton.addEventListener('click', showMainMenu);
-            menuContainer.appendChild(menuButton);
-            
-            // Show menu
-            menuContainer.style.display = 'flex';
-            
-            // Set game state
-            gameState = GameState.GAME_OVER;
-        }
-
-        function createEnemy(position) {
-            const enemyGeometry = new THREE.BoxGeometry(1, 2, 1);
-            const enemyMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
-            
-            enemy.position.copy(position);
-            enemy.castShadow = true;
-            enemy.receiveShadow = true;
-            scene.add(enemy);
-            
-            return {
-                mesh: enemy,
-                health: 30 + Math.floor(wave * 5),
-                speed: 0.02 + (wave * 0.002),
-                lastShootTime: 0,
-                shootDelay: 3000 - (wave * 100)
-            };
-        }
-
-        function createBullet(position, direction, isEnemy = false) {
-            const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-            const bulletMaterial = new THREE.MeshStandardMaterial({ 
-                color: isEnemy ? 0xff0000 : 0x00ffff,
-                emissive: isEnemy ? 0xff0000 : 0x00ffff,
-                emissiveIntensity: 0.5
-            });
-            const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-            
-            bullet.position.copy(position);
-            bullet.velocity = direction.clone().normalize().multiplyScalar(0.8);
-            bullet.isEnemy = isEnemy;
-            bullet.castShadow = true;
-            scene.add(bullet);
-            
-            return bullet;
-        }
-
-        function createAmmoPickup(position) {
-            const pickupGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            const pickupMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0xffff00,
-                emissive: 0xffff00,
-                emissiveIntensity: 0.5
-            });
-            const pickup = new THREE.Mesh(pickupGeometry, pickupMaterial);
-            
-            pickup.position.copy(position);
-            pickup.position.y = 0.5;
-            pickup
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
