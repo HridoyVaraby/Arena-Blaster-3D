@@ -7,7 +7,8 @@ let gameState = {
     health: 100,
     ammo: 50,
     enemies: [],
-    particles: []
+    particles: [],
+    bullets: []
 };
 
 // Three.js setup
@@ -18,17 +19,42 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Lighting
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+// Enhanced Lighting
+const directionalLight = new THREE.DirectionalLight(0xffd700, 1.2);
 directionalLight.position.set(5, 10, 5);
+directionalLight.castShadow = true;
 scene.add(directionalLight);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+
+const ambientLight = new THREE.AmbientLight(0x6495ed, 0.6);
 scene.add(ambientLight);
 
+// Add colored spotlights for dramatic effect
+const spotLight1 = new THREE.SpotLight(0xff4500, 1);
+spotLight1.position.set(-15, 10, -15);
+spotLight1.angle = Math.PI / 6;
+spotLight1.penumbra = 0.3;
+scene.add(spotLight1);
+
+const spotLight2 = new THREE.SpotLight(0x00ff7f, 1);
+spotLight2.position.set(15, 10, 15);
+spotLight2.angle = Math.PI / 6;
+spotLight2.penumbra = 0.3;
+scene.add(spotLight2);
+
+// Enable shadow rendering
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 // Arena setup
+// Enhanced ground with metallic texture
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(50, 50),
-    new THREE.MeshStandardMaterial({ color: 0x808080 })
+    new THREE.MeshStandardMaterial({
+        color: 0x4a4a4a,
+        metalness: 0.7,
+        roughness: 0.3,
+        envMapIntensity: 1.0
+    })
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
@@ -42,8 +68,15 @@ const obstacles = [
 ].map(({ pos }) => {
     const obstacle = new THREE.Mesh(
         new THREE.BoxGeometry(2, 2, 2),
-        new THREE.MeshStandardMaterial({ color: 0x808080 })
+        new THREE.MeshStandardMaterial({
+            color: 0x2196f3,
+            metalness: 0.8,
+            roughness: 0.2,
+            envMapIntensity: 1.0
+        })
     );
+    obstacle.castShadow = true;
+    obstacle.receiveShadow = true;
     obstacle.position.set(...pos);
     scene.add(obstacle);
     return obstacle;
@@ -53,6 +86,99 @@ const obstacles = [
 camera.position.set(0, 1, 0);
 let playerVelocity = new THREE.Vector3();
 let playerRotation = new THREE.Euler(0, 0, 0, 'YXZ');
+
+// Keyboard state
+let keyState = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false
+};
+
+// Mouse state
+let mouseState = {
+    isLocked: false,
+    sensitivity: 0.002
+};
+
+// Input device detection
+let activeInputDevice = 'touch';
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+    if (!gameState.isPlaying) return;
+    activeInputDevice = 'keyboard';
+    switch(e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+            keyState.forward = true;
+            break;
+        case 'KeyS':
+        case 'ArrowDown':
+            keyState.backward = true;
+            break;
+        case 'KeyA':
+        case 'ArrowLeft':
+            keyState.left = true;
+            break;
+        case 'KeyD':
+        case 'ArrowRight':
+            keyState.right = true;
+            break;
+        case 'Space':
+            shoot();
+            break;
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    switch(e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+            keyState.forward = false;
+            break;
+        case 'KeyS':
+        case 'ArrowDown':
+            keyState.backward = false;
+            break;
+        case 'KeyA':
+        case 'ArrowLeft':
+            keyState.left = false;
+            break;
+        case 'KeyD':
+        case 'ArrowRight':
+            keyState.right = false;
+            break;
+    }
+});
+
+// Mouse controls
+document.addEventListener('click', () => {
+    if (!mouseState.isLocked) {
+        renderer.domElement.requestPointerLock();
+    }
+});
+
+document.addEventListener('pointerlockchange', () => {
+    mouseState.isLocked = document.pointerLockElement === renderer.domElement;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (mouseState.isLocked && gameState.isPlaying) {
+        activeInputDevice = 'keyboard';
+        playerRotation.y -= e.movementX * mouseState.sensitivity;
+        playerRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, 
+            playerRotation.x - e.movementY * mouseState.sensitivity
+        ));
+        camera.rotation.copy(playerRotation);
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (e.button === 0 && mouseState.isLocked && gameState.isPlaying) {
+        shoot();
+    }
+});
 
 // Joystick state
 let joystickState = {
@@ -107,40 +233,59 @@ function shoot() {
     gameState.ammo--;
     document.getElementById('ammo-count').textContent = `Ammo: ${gameState.ammo}`;
     
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    const intersects = raycaster.intersectObjects(gameState.enemies);
+    const bullet = new THREE.Mesh(
+        new THREE.SphereGeometry(0.1, 8, 8),
+        new THREE.MeshPhongMaterial({
+            color: 0xff9500,
+            emissive: 0xff7b00,
+            emissiveIntensity: 0.5,
+            shininess: 100
+        })
+    );
+    bullet.castShadow = true;
+    bullet.position.copy(camera.position);
     
-    if (intersects.length > 0) {
-        const enemy = intersects[0].object;
-        createParticles(enemy.position);
-        scene.remove(enemy);
-        gameState.enemies = gameState.enemies.filter(e => e !== enemy);
-        gameState.score += 10;
-        updateScore();
-        
-        if (gameState.enemies.length === 0) {
-            setTimeout(startNextWave, 3000);
-        }
-    }
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const direction = new THREE.Vector3();
+    raycaster.ray.direction.normalize();
+    direction.copy(raycaster.ray.direction);
+    
+    bullet.velocity = direction.multiplyScalar(0.5);
+    bullet.alive = true;
+    bullet.lifetime = 0;
+    
+    scene.add(bullet);
+    gameState.bullets.push(bullet);
 }
 
 // Particle effects
 function createParticles(position) {
-    const particleCount = 20;
+    const particleCount = 30;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const particleColors = [0xff0000, 0xff7f00, 0xffff00, 0xff00ff];
     
     for (let i = 0; i < particleCount * 3; i += 3) {
         positions[i] = position.x;
         positions[i + 1] = position.y;
         positions[i + 2] = position.z;
+        
+        const color = new THREE.Color(particleColors[Math.floor(Math.random() * particleColors.length)]);
+        colors[i] = color.r;
+        colors[i + 1] = color.g;
+        colors[i + 2] = color.b;
     }
     
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
     const material = new THREE.PointsMaterial({
-        color: 0xffff00,
-        size: 0.1,
-        transparent: true
+        size: 0.15,
+        transparent: true,
+        opacity: 0.8,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending
     });
     
     const particles = new THREE.Points(geometry, material);
@@ -204,7 +349,7 @@ function animate(time) {
         updateScore();
         
         // Player movement
-        if (joystickState.active) {
+        if (activeInputDevice === 'touch' && joystickState.active) {
             const dx = joystickState.moveX - joystickState.startX;
             const dy = joystickState.moveY - joystickState.startY;
             const moveAngle = Math.atan2(dx, dy);
@@ -212,8 +357,31 @@ function animate(time) {
             
             playerVelocity.x = Math.sin(moveAngle) * moveSpeed;
             playerVelocity.z = Math.cos(moveAngle) * moveSpeed;
+        } else if (activeInputDevice === 'keyboard') {
+            const moveSpeed = 0.1;
+            playerVelocity.set(0, 0, 0);
             
-            camera.position.add(playerVelocity);
+            if (keyState.forward) {
+                playerVelocity.z = -Math.cos(playerRotation.y) * moveSpeed;
+                playerVelocity.x = -Math.sin(playerRotation.y) * moveSpeed;
+            }
+            if (keyState.backward) {
+                playerVelocity.z = Math.cos(playerRotation.y) * moveSpeed;
+                playerVelocity.x = Math.sin(playerRotation.y) * moveSpeed;
+            }
+            if (keyState.left) {
+                playerVelocity.x = -Math.cos(playerRotation.y) * moveSpeed;
+                playerVelocity.z = Math.sin(playerRotation.y) * moveSpeed;
+            }
+            if (keyState.right) {
+                playerVelocity.x = Math.cos(playerRotation.y) * moveSpeed;
+                playerVelocity.z = -Math.sin(playerRotation.y) * moveSpeed;
+            }
+        }
+        
+        const newPosition = camera.position.clone().add(playerVelocity);
+        if (Math.abs(newPosition.x) < 24 && Math.abs(newPosition.z) < 24) {
+            camera.position.copy(newPosition);
         }
         
         // Enemy movement and attacks
@@ -248,6 +416,40 @@ function animate(time) {
                 positions[i + 2] += particle.velocities[i/3].z * delta;
             }
             particle.mesh.geometry.attributes.position.needsUpdate = true;
+            return true;
+        });
+
+        // Update bullets
+        gameState.bullets = gameState.bullets.filter(bullet => {
+            bullet.position.add(bullet.velocity);
+            bullet.lifetime += delta;
+
+            // Check bullet collision with enemies
+            const hitEnemy = gameState.enemies.find(enemy => 
+                bullet.position.distanceTo(enemy.position) < 1
+            );
+
+            if (hitEnemy) {
+                createParticles(hitEnemy.position);
+                scene.remove(hitEnemy);
+                scene.remove(bullet);
+                gameState.enemies = gameState.enemies.filter(e => e !== hitEnemy);
+                gameState.score += 10;
+                updateScore();
+                
+                if (gameState.enemies.length === 0) {
+                    setTimeout(startNextWave, 3000);
+                }
+                return false;
+            }
+
+            // Remove bullets that are too old or out of bounds
+            if (bullet.lifetime > 2 || 
+                Math.abs(bullet.position.x) > 25 || 
+                Math.abs(bullet.position.z) > 25) {
+                scene.remove(bullet);
+                return false;
+            }
             return true;
         });
     }
